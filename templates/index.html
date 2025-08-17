@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Group25 - Multilingual Translation App</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        textarea { width: 100%; padding: 10px; font-size: 24px; }
+        .translate-btn { margin-left: 10px; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; float: right; }
+        button:hover { background-color: #45a049; }
+        .text-input-wrapper .text-output-wrapper {
+            font-size: 1.5rem;
+        }
+        .translated-text {
+            padding: 10px;
+            background-color: #cee3f8;
+            border: 1px solid #4094d1;;
+            border-radius: 5px;
+            }
+    </style>
+    <script src="{{ url_for('static', path='js/script.js') }}" defer></script>
+    <script src="{{ url_for('static', path='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', path='bootstrap/js/bootstrap.min.js') }}"></script>
+</head>
+<body>
+    <h1>Multilingual Translation App</h1><br><br>
+
+    <div class="row">
+        <div class="col"></div>
+        <div class="col col-md-2 col-sm-6">
+            <label for="sourceLang">Source Language:</label>
+            <select class="form-select form-select-sm mb-3" aria-label="source language" name="source-lang" id="sourceLang">
+              <option value="english">English</option>
+              <option value="hindi">Hindi</option>
+              <option value="marathi">Marathi</option>
+            </select>
+        </div>
+        <div class="col col-md-2 col-sm-6">
+            <label for="targetLang">Target Language:</label>
+            <select  class="form-select form-select-sm mb-3" aria-label="target language" name="target-lang" id="targetLang">
+              <option value="english">English</option>
+              <option value="hindi">Hindi</option>
+              <option value="marathi">Marathi</option>
+            </select>
+        </div>
+        <div class="col"></div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="text-input-wrapper">
+                <textarea id="inputText" rows="6" placeholder="Type your text here..."></textarea>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="text-output-wrapper">
+                <textarea id="translatedText" class="translated-text" rows="6" readonly></textarea>
+            </div>
+        </div>
+    </div>
+    <button class="translate-btn " onclick="translateText()">Translate</button>
+
+    <!-- Toast Message -->
+    <div id="messageToast" class="toast align-items-center text-white border-0 position-absolute bottom-0 end-0 mb-3" data-bs-autohide="true" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" >
+          Message
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+
+    <!-- Spinner -->
+    <div class="spinner-backdrop" id="spinnerBackdrop">
+      <div class="spinner"></div>
+    </div>
+    <script src="{{ url_for('static', path='js/script.js') }}"></script>
+    <script src="{{ url_for('static', path='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', path='bootstrap/js/bootstrap.min.js') }}"></script>
+</body>
+</html>

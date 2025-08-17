@@ -1,0 +1,1 @@
+from .translation_controller import translation_router

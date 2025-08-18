@@ -10,10 +10,12 @@ import os
 tqdm.pandas()
 
 
-class IndicTransModel:
+class IndicTransEnIndicModel:
     model = None
     tokenizer = None
-    model_save_dir = "./saved_models/indictrans2_finetuned_v1"
+    model_save_dir = "./saved_models/indictrans2-en-indic-finetuned-v1"
+
+    ip = IndicProcessor(inference=True)
 
     def __init__(self):
         os.makedirs(self.model_save_dir, exist_ok=True)
@@ -27,7 +29,7 @@ class IndicTransModel:
 
         if self.model is None or self.tokenizer is None:
             # Load model and tokenizer
-            model_name = "ai4bharat/indictrans2-indic-en-1B"
+            model_name = "ai4bharat/indictrans2-en-indic-1B"
             print(f"Downloading model from Hugging Face: {model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
             self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, trust_remote_code=True, torch_dtype="auto")
@@ -73,13 +75,13 @@ class IndicTransModel:
         p_train_dataset, p_validation_dataset, p_test_dataset = None,None, None
 
         if train_dataset is not None and not train_dataset.empty:
-            p_train_dataset = DataProcessorService.preprocess_data(train_dataset, direction="both")
+            p_train_dataset = DataProcessorService.preprocess_data(train_dataset, direction="en-hi")
 
         if validation_dataset is not None and not validation_dataset.empty:
-            p_validation_dataset = DataProcessorService.preprocess_data(validation_dataset, direction="both")
+            p_validation_dataset = DataProcessorService.preprocess_data(validation_dataset, direction="en-hi")
 
         if test_dataset is not None and not test_dataset.empty:
-            p_test_dataset = DataProcessorService.preprocess_data(test_dataset, direction="both")
+            p_test_dataset = DataProcessorService.preprocess_data(test_dataset, direction="en-hi")
 
         # prepare dataset (Bidirectional Handle)
         dataset_prepped = DatasetDict({
@@ -87,21 +89,7 @@ class IndicTransModel:
             "validation": p_validation_dataset
         })
 
-        # Tokenize dataset
-        # def tokenize_data(batch):
-        #     model_inputs = self.tokenizer(batch["input_text"], truncation=True, padding="longest", max_length=128)
-        #     labels = self.tokenizer(batch["target_text"], truncation=True, padding="longest", max_length=128).input_ids
-        #     model_inputs["labels"] = [
-        #         [(lbl if lbl != self.tokenizer.pad_token_id else -100) for lbl in label] for label in labels
-        #     ]
-        #     return model_inputs
-        # tokenized = dataset_prepped.map(tokenize_data, batched=True)
-
         tokenized = dataset_prepped.map(lambda batch: DataProcessorService.tokenize_data(batch, self.tokenizer), batched=True)
-
-        # max_token_id = max(max(batch["input_ids"]) for batch in tokenized['train'])
-        # print(f"Max token id in train dataset: {max_token_id}")
-        # print(f"Model vocab size: {self.model.config.vocab_size}")
 
         # prepare training args
         training_args = TrainingArguments(
@@ -134,31 +122,40 @@ class IndicTransModel:
         # self.tokenizer.save_pretrained(self.model_save_dir)
         print('Saved trained model')
 
-    def translate(self, input_text: str, src_lang: str, tgt_lang: str, max_length: int = 128) -> str:
+    def translate(self, input_text: str, src_lang: str, tgt_lang: str, max_length: int = 256) -> str:
         device = self.model.device
 
         # Format the input in the expected format for IndicTrans2
-        prefix = f"{src_lang} {tgt_lang}"
-        input_with_lang = f"{prefix} {input_text.strip()}"
+        input_text = input_text.strip()
+
+        batch = self.ip.preprocess_batch(
+            [input_text],
+            src_lang=src_lang,
+            tgt_lang=tgt_lang,
+        )
 
         # Tokenize input
         inputs = self.tokenizer(
-            [input_with_lang],
-            return_tensors="pt",
-            padding=True,
+            batch,
             truncation=True,
+            padding="longest",
+            return_tensors="pt",
+            return_attention_mask=True,
             max_length=max_length
         ).to(device)
 
         # Generate output
         with torch.no_grad():
-            outputs = self.model.generate(**inputs, max_length=max_length)
+            outputs = self.model.generate(**inputs,use_cache=False, min_length=0, max_length=max_length, num_beams=5, num_return_sequences=1)
 
         # Decode output
         with self.tokenizer.as_target_tokenizer():
-            translated = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+            outputs = self.tokenizer.batch_decode(outputs, skip_special_tokens=True, clean_up_tokenization_spaces=True)
 
-        return translated
+        # Postprocess the translations, including entity replacement
+        translations = self.ip.postprocess_batch(outputs, lang=tgt_lang)
+
+        return translations
 
 
-indic_trans_model = IndicTransModel()
+indictrans_en_indic_model = IndicTransEnIndicModel()

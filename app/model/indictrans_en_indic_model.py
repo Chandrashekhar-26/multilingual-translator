@@ -29,7 +29,7 @@ class IndicTransEnIndicModel:
 
         if self.model is None or self.tokenizer is None:
             # Load model and tokenizer
-            model_name = "ai4bharat/indictrans2-en-indic-1B"
+            model_name = "ai4bharat/indictrans2-en-indic-dist-200M"
             print(f"Downloading model from Hugging Face: {model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
             self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, trust_remote_code=True, torch_dtype="auto")
@@ -44,14 +44,14 @@ class IndicTransEnIndicModel:
 
         # train on hindi-english dataset
         dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
-        train_dataset = self.__flatten_dataset(dataset['train'], 0.02)
-        validation_dataset = self.__flatten_dataset(dataset['validation'])
-        test_dataset = self.__flatten_dataset(dataset['test'])
+        train_dataset = self.__flatten_dataset(dataset['train'],  'hi', 'en', 0.02)
+        validation_dataset = self.__flatten_dataset(dataset['validation'], 'hi', 'en')
+        test_dataset = self.__flatten_dataset(dataset['test'], 'hi', 'en')
 
         # train
         # self.train(train_dataset, validation_dataset, test_dataset)
 
-    def __flatten_dataset(self, dataset, frac=None):
+    def __flatten_dataset(self, dataset, src_lang: str, trgt_lang: str, frac=None):
         df = None
         if dataset:
             df_full = dataset.to_pandas()
@@ -59,12 +59,11 @@ class IndicTransEnIndicModel:
                 df = df_full.sample(frac=frac, random_state=42).reset_index(drop=True)
             else:
                 df = df_full
-            # print few
             print(df.head(5))
-            # flatten dataset
+
             if 'translation' in df:
-                df[['en', 'hi']] = df['translation'].progress_apply(pd.Series)
-            # Optionally drop the original column
+                df[[src_lang, trgt_lang]] = df['translation'].progress_apply(pd.Series)
+
             df.drop(columns='translation', inplace=True)
 
         return df
@@ -127,6 +126,9 @@ class IndicTransEnIndicModel:
 
         # Format the input in the expected format for IndicTrans2
         input_text = input_text.strip()
+
+        # Check if input is Latin and transliterate if needed
+        input_text = DataProcessorService.transliterate_text(input_text, src_lang, tgt_lang)
 
         batch = self.ip.preprocess_batch(
             [input_text],

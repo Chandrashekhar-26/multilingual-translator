@@ -22,50 +22,33 @@ class DataPreprocessorService:
         return text
 
     @staticmethod
-    def preprocess_dataset(df: pd.DataFrame, direction="en>>hi"):
+    def preprocess_dataset(df: pd.DataFrame, src_lang: str, trgt_lang: str, prefix='eng_Latn hin_Deva'):
         df.dropna(inplace=True)
 
         # Clean both languages
-        df['en'] = df['en'].apply(DataPreprocessorService.clean_text)
-        df['hi'] = df['hi'].apply(DataPreprocessorService.clean_text)
+        df[src_lang] = df[src_lang].apply(DataPreprocessorService.clean_text)
+        df[trgt_lang] = df[trgt_lang].apply(DataPreprocessorService.clean_text)
 
         # Remove empty or too long sentences
-        df = df[(df['en'].str.len() > 1) & (df['hi'].str.len() > 1)]
-        df = df[(df['en'].str.len() < 200) & (df['hi'].str.len() < 200)]
+        df = df[(df[trgt_lang].str.len() > 1) & (df[src_lang].str.len() > 1)]
+        df = df[(df[trgt_lang].str.len() < 200) & (df[src_lang].str.len() < 200)]
 
         # Lowercase English (optional, model-dependent)
-        df['en'] = df['en'].str.lower()
+        if df['en']:
+            df['en'] = df['en'].str.lower()
 
         # Format inputs with language tag
-        if direction == "en>>hi":
-            df_formatted = pd.DataFrame({
-                "input_text": df["en"].apply(lambda x: f"eng_Latn hin_Deva {x}"),
-                "target_text": df["hi"].apply(lambda x: f"eng_Latn hin_Deva {x}")
-            })
-        elif direction == "hi>>en":
-            df_formatted = pd.DataFrame({
-                "input_text": df["hi"].apply(lambda x: f"hin_Deva eng_Latn {x}"),
-                "target_text": df["en"].apply(lambda x: f"hin_Deva eng_Latn {x}")
-            })
-        elif direction == "both":
-            en_hi = pd.DataFrame({
-                "input_text": df["en"].apply(lambda x: f"eng_Latn hin_Deva {x}"),
-                "target_text": df["hi"].apply(lambda x: f"eng_Latn hin_Deva {x}")
-            })
-            hi_en = pd.DataFrame({
-                "input_text": df["hi"].apply(lambda x: f"hin_Deva eng_Latn {x}"),
-                "target_text": df["en"].apply(lambda x: f"hin_Deva eng_Latn {x}")
-            })
-            df_formatted = pd.concat([en_hi, hi_en], ignore_index=True)
-        else:
-            raise ValueError("Unsupported direction")
-
-        assert df_formatted['input_text'].str.startswith('eng_Latn hin_Deva').any() or \
-               df_formatted['input_text'].str.startswith('hin_Deva eng_Latn').any(), \
-            "Missing or incorrect language tags in input_text!"
-
-        assert df_formatted['target_text'].str.startswith('eng_Latn hin_Deva').any() or \
-               df_formatted['target_text'].str.startswith('hin_Deva eng_Latn').any(), \
-            "Missing or incorrect language tags in target_text!"
+        df_formatted = pd.DataFrame({
+            "input_text": df[src_lang].apply(lambda x: f"{prefix} {x}"),
+            "target_text": df[trgt_lang].apply(lambda x: f"{x}")
+        })
+        #
+        # assert df_formatted['input_text'].str.startswith('eng_Latn hin_Deva').any() or \
+        #        df_formatted['input_text'].str.startswith('hin_Deva eng_Latn').any(), \
+        #     "Missing or incorrect language tags in input_text!"
+        #
+        # assert df_formatted['target_text'].str.startswith('eng_Latn hin_Deva').any() or \
+        #        df_formatted['target_text'].str.startswith('hin_Deva eng_Latn').any(), \
+        #     "Missing or incorrect language tags in target_text!"
 
         return Dataset.from_pandas(df_formatted)

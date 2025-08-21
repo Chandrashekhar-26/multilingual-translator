@@ -5,8 +5,8 @@ from typing import Literal
 class TranslationRequest(BaseModel):
     text: str = Field(..., description='Text')
     source_language: Literal[
-        'HINDI', 'ENGLISH', 'MARATHI'
+        'ENGLISH', 'HINDI', 'MARATHI', 'TAMIL', 'KANNADA'
     ] = Field(..., description="Source Language")
     target_language: Literal[
-        'ENGLISH', 'HINDI', 'MARATHI'
+        'ENGLISH', 'HINDI', 'MARATHI', 'TAMIL', 'KANNADA'
     ] = Field(..., description="Target Language")

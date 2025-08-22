@@ -50,7 +50,7 @@ pip install -r requirements.txt
 
 ### 3. Run the Application
 ```bash
-python app/main.py
+python main.py
 ```
 
 ## Test cases include:

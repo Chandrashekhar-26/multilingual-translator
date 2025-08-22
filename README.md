@@ -25,10 +25,11 @@ dataset refer [Indian Parallel Corpus](https://github.com/Kartikaggarwal98/India
 | Component     | Tool / Library                          |
 |---------------|-----------------------------------------|
 | Model         | `ai4bharat/IndicTrans2` (Transformers)  |
-| Web Framework | Streamlit / Flask (choose one)          |
+| Web Framework | Fast API         |
 | Tokenizer     | Hugging Face Tokenizers                 |
 | Evaluation    | SacreBLEU, NLTK (METEOR), PyTER         |
-| Dataset       | Indian Parallel Corpus (IIT Bombay)     |
+| Dataset       | Indian Parallel Corpus (IIT Bombay),    |
+|               | ai4bharat/samanantar"                   |
 
 ---
 
@@ -47,7 +48,7 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-### 3. Run the Flask App
+### 3. Run the Application
 ```bash
 python app/main.py
 ```
@@ -80,5 +81,5 @@ python app/main.py
 Dataset referred - [Indian Parallel Corpus](https://github.com/Kartikaggarwal98/Indian_ParallelCorpus).
 1. Hindi → English = cfilt/iitb-english-hindi (Hugging face)
 2. English → Hindi = cfilt/iitb-english-hindi (Hugging face)
-3. English → Marathi = ai4bharat/samanantar" (Hugging face)
+3. English → Marathi = ai4bharat/samanantar (Hugging face)
 

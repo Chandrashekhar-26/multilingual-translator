@@ -34,13 +34,13 @@ class DataPreprocessorService:
         df = df[(df[trgt_lang].str.len() < 200) & (df[src_lang].str.len() < 200)]
 
         # Lowercase English (optional, model-dependent)
-        if df['en']:
+        if 'en' in df.columns and df['en'].notnull().any():
             df['en'] = df['en'].str.lower()
 
         # Format inputs with language tag
         df_formatted = pd.DataFrame({
             "input_text": df[src_lang].apply(lambda x: f"{prefix} {x}"),
-            "target_text": df[trgt_lang].apply(lambda x: f"{x}")
+            "target_text": df[trgt_lang].apply(lambda x: f"{prefix} {x}")
         })
         #
         # assert df_formatted['input_text'].str.startswith('eng_Latn hin_Deva').any() or \

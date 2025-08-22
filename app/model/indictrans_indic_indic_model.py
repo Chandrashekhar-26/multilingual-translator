@@ -44,13 +44,13 @@ class IndicTransIndicIndicModel:
         self.model.to(device)
 
         # Load a suitable Indic-Indic dataset for fine-tuning
-        dataset = load_dataset("ai4bharat/samanantar", "mr")
+        # dataset = load_dataset("ai4bharat/samanantar", "mr")
 
-        # train_dataset = self.__flatten_dataset(dataset['train'], 0.02)
-        # validation_dataset = self.__flatten_dataset(dataset['validation'])
-        # test_dataset = self.__flatten_dataset(dataset['test'])
+        # train_dataset = self.__flatten_dataset(dataset['train'], 'en', 'mr', 0.02)
+        # validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'mr', )
+        # test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'mr', )
 
-        # self.train(train_dataset, validation_dataset, test_dataset)
+        # self.train(train_dataset, validation_dataset, test_dataset, 'en', 'mr', 'eng_Latn mar_Deva')
 
     def __flatten_dataset(self, dataset, src_lang: str, trgt_lang: str, frac=None):
         df = None
@@ -62,24 +62,22 @@ class IndicTransIndicIndicModel:
                 df = df_full
             print(df.head(5))
 
-            if 'translation' in df:
-                df[[src_lang, trgt_lang]] = df['translation'].progress_apply(pd.Series)
-
-            df.drop(columns='translation', inplace=True)
+            df[[src_lang, trgt_lang]] = df[['src', 'tgt']]
+            df.drop(columns='features', inplace=True)
 
         return df
 
-    def train(self, train_dataset, validation_dataset, test_dataset):
+    def train(self, train_dataset, validation_dataset, test_dataset, src_lang, trgt_lang, prefix):
         p_train_dataset, p_validation_dataset, p_test_dataset = None, None, None
 
         if train_dataset is not None and not train_dataset.empty:
-            p_train_dataset = DataProcessorService.preprocess_data(train_dataset, direction="indic-indic")
+            p_train_dataset = DataProcessorService.preprocess_data(train_dataset, src_lang, trgt_lang, prefix)
 
         if validation_dataset is not None and not validation_dataset.empty:
-            p_validation_dataset = DataProcessorService.preprocess_data(validation_dataset, direction="indic-indic")
+            p_validation_dataset = DataProcessorService.preprocess_data(validation_dataset, src_lang, trgt_lang, prefix)
 
         if test_dataset is not None and not test_dataset.empty:
-            p_test_dataset = DataProcessorService.preprocess_data(test_dataset, direction="indic-indic")
+            p_test_dataset = DataProcessorService.preprocess_data(test_dataset, src_lang, trgt_lang, prefix)
 
         dataset_prepped = DatasetDict({
             "train": p_train_dataset,

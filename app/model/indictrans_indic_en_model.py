@@ -43,13 +43,13 @@ class IndicTransIndicEnModel:
         self.model.to(device)
 
         # train on hindi-english dataset
-        dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
-        train_dataset = self.__flatten_dataset(dataset['train'],  'hi', 'en', 0.02)
-        validation_dataset = self.__flatten_dataset(dataset['validation'], 'hi', 'en')
-        test_dataset = self.__flatten_dataset(dataset['test'], 'hi', 'en')
+        # dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
+        # train_dataset = self.__flatten_dataset(dataset['train'],  'hi', 'en', 0.02)
+        # validation_dataset = self.__flatten_dataset(dataset['validation'], 'hi', 'en')
+        # test_dataset = self.__flatten_dataset(dataset['test'], 'hi', 'en')
 
         # train
-        # self.train(train_dataset, validation_dataset, test_dataset)
+        # self.train(train_dataset, validation_dataset, test_dataset, 'hi', 'en', 'hin_Deva eng_Latn')
 
 
     def __flatten_dataset(self, dataset, src_lang: str, trgt_lang: str, frac=None):
@@ -63,25 +63,26 @@ class IndicTransIndicEnModel:
             print(df.head(5))
 
             if 'translation' in df:
-                df[[src_lang, trgt_lang]] = df['translation'].progress_apply(pd.Series)
+                df = df['translation'].progress_apply(pd.Series)
 
-            df.drop(columns='translation', inplace=True)
+                # df[[src_lang, trgt_lang]] = df['translation'].progress_apply(pd.Series)
+                # df.drop(columns='translation', inplace=True)
 
         return df
 
-    def train(self, train_dataset, validation_dataset, test_dataset):
+    def train(self, train_dataset, validation_dataset, test_dataset, src_lang, trgt_lang, prefix):
 
         # preprocess dataset
         p_train_dataset, p_validation_dataset, p_test_dataset = None,None, None
 
         if train_dataset is not None and not train_dataset.empty:
-            p_train_dataset = DataProcessorService.preprocess_data(train_dataset, direction="hi-en")
+            p_train_dataset = DataProcessorService.preprocess_data(train_dataset, src_lang, trgt_lang, prefix)
 
         if validation_dataset is not None and not validation_dataset.empty:
-            p_validation_dataset = DataProcessorService.preprocess_data(validation_dataset, direction="hi-en")
+            p_validation_dataset = DataProcessorService.preprocess_data(validation_dataset, src_lang, trgt_lang, prefix)
 
         if test_dataset is not None and not test_dataset.empty:
-            p_test_dataset = DataProcessorService.preprocess_data(test_dataset, direction="hi-en")
+            p_test_dataset = DataProcessorService.preprocess_data(test_dataset, src_lang, trgt_lang, prefix)
 
         # prepare dataset (Bidirectional Handle)
         dataset_prepped = DatasetDict({

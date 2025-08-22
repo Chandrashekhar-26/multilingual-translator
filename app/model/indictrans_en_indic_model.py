@@ -1,7 +1,7 @@
 import pandas as pd
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, TrainingArguments, Trainer
 import torch
-from app.data_processor import DataProcessorService
+from app.data_processor import DataProcessorService, evaluator
 from datasets import load_dataset, DatasetDict
 from IndicTransToolkit import IndicProcessor
 from tqdm import tqdm
@@ -14,6 +14,7 @@ class IndicTransEnIndicModel:
     model = None
     tokenizer = None
     model_save_dir = "./saved_models/indictrans2-en-indic-finetuned-v1"
+    evaluation_result = {}
 
     ip = IndicProcessor(inference=True)
 
@@ -43,13 +44,13 @@ class IndicTransEnIndicModel:
         self.model.to(device)
 
         # train on hindi-english dataset
-        dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
-        train_dataset = self.__flatten_dataset(dataset['train'],  'en', 'hi', 0.02)
-        validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'hi')
-        test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'hi')
-
-        # train
-        self.train(train_dataset, validation_dataset, test_dataset, 'en', 'hi', 'eng_Latn hin_Deva')
+        # dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
+        # train_dataset = self.__flatten_dataset(dataset['train'],  'en', 'hi', 0.02)
+        # validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'hi')
+        # test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'hi')
+        #
+        # # train
+        # self.train(train_dataset, validation_dataset, test_dataset, 'en', 'hi', 'eng_Latn hin_Deva')
 
     def __flatten_dataset(self, dataset, src_lang: str, trgt_lang: str, frac=None):
         df = None
@@ -120,6 +121,29 @@ class IndicTransEnIndicModel:
         # self.model.save_pretrained(self.model_save_dir)
         # self.tokenizer.save_pretrained(self.model_save_dir)
         print('Saved trained model')
+
+        # evaluate
+        self.evaluation_result = self.evaluate(p_test_dataset, src_lang, trgt_lang)
+
+    def evaluate(self, test_dataset, src_lang, tgt_lang):
+        if test_dataset is None or test_dataset.empty:
+            print("Test dataset is empty or not provided.")
+            return
+
+        print("Evaluating model...")
+
+        input_texts = test_dataset[src_lang]
+        references = test_dataset[tgt_lang]
+
+        predictions = []
+        for text in tqdm(input_texts, desc="Generating translations"):
+            translation = self.translate(text, src_lang=src_lang, tgt_lang=tgt_lang)
+            predictions.append(translation[0])
+
+        # Evaluate
+        metrics = evaluator.evaluate_translations(predictions, references, verbose=True)
+
+        return metrics
 
     def translate(self, input_text: str, src_lang: str, tgt_lang: str, max_length: int = 256) -> str:
         device = self.model.device

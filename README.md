@@ -22,14 +22,14 @@ dataset refer [Indian Parallel Corpus](https://github.com/Kartikaggarwal98/India
 
 ## 🚀 Technologies Used
 
-| Component     | Tool / Library                          |
-|---------------|-----------------------------------------|
-| Model         | `ai4bharat/IndicTrans2` (Transformers)  |
-| Web Framework | Fast API         |
-| Tokenizer     | Hugging Face Tokenizers                 |
-| Evaluation    | SacreBLEU, NLTK (METEOR), PyTER         |
-| Dataset       | Indian Parallel Corpus (IIT Bombay),    |
-|               | ai4bharat/samanantar"                   |
+| Component     | Tool / Library                                               |
+|---------------|--------------------------------------------------------------|
+| Model         | `ai4bharat/IndicTrans2` (Transformers)  |                    |
+| Web Framework | Fast API                                |                    |
+| Tokenizer     | Hugging Face Tokenizers                 |                    |
+| Evaluation    | SacreBLEU, NLTK (METEOR), PyTER         |                    |
+| Dataset       | Indian Parallel Corpus (IIT Bombay), ai4bharat/samanantar"   |
+|               |                                         |                    |
 
 ---
 

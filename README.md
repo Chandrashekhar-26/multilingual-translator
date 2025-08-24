@@ -48,6 +48,7 @@ python -m venv venv
 source ./venv/bin/activate # ubuntu
 .\venv\Scripts\activate.bat # Windows
 pip install -r requirements.txt
+scp .env.prod .env # copy env file
 ```
 
 ### 3. Run the Application

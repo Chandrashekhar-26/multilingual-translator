@@ -5,13 +5,12 @@ from ..service import translation_service
 
 translation_router = APIRouter(
     prefix="",
-    tags=["Multilingual Translator"]
+    tags=["Multilingual Translator FineTune"]
 )
 
 
 @translation_router.post("/")
-async def predict(translation_request: TranslationRequest):
+def fine_tune():
+    translation_service.init_finetune()
 
-    result = await translation_service.translate(translation_request)
-
-    return result
+    return 'Model Finetuning initiated'

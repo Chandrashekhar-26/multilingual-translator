@@ -31,24 +31,10 @@ class IndicTransIndicIndicModel:
             pass
 
         if self.model is None or self.tokenizer is None:
-            # # check gpu
-            # gpu_available = torch.cuda.is_available()
-            #
-            # # Load 4-bit quantized model
-            # bnb_config = BitsAndBytesConfig(
-            #     load_in_4bit=True,
-            #     bnb_4bit_compute_dtype=torch.float16,
-            #     bnb_4bit_use_double_quant=True,
-            #     bnb_4bit_quant_type="nf4"
-            # )
             # Load from Hugging Face
             model_name = "ai4bharat/indictrans2-indic-indic-dist-320M"
             print(f"Downloading model from Hugging Face: {model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-
-            # if gpu_available:
-            #     self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, quantization_config=bnb_config, trust_remote_code=True, torch_dtype="auto")
-            # else:
             self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, trust_remote_code=True, torch_dtype="auto")
 
         # Ensure tokenizer has pad_token
@@ -58,15 +44,6 @@ class IndicTransIndicIndicModel:
         # Use GPU if available
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
-
-        # Load a suitable Indic-Indic dataset for fine-tuning
-        dataset = load_dataset("ai4bharat/samanantar", "mr")
-
-        train_dataset = self.__flatten_dataset(dataset['train'], 'en', 'mr', 0.005)
-        validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'mr', )
-        test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'mr', )
-
-        self.train(train_dataset, validation_dataset, test_dataset, 'en', 'mr', 'eng_Latn mar_Deva')
 
     def __flatten_dataset(self, dataset, src_lang: str, trgt_lang: str, frac=None):
         df = None
@@ -83,7 +60,19 @@ class IndicTransIndicIndicModel:
 
         return df
 
-    def train(self, train_dataset, validation_dataset, test_dataset, src_lang, trgt_lang, prefix):
+    def train(self):
+
+        # Load a suitable Indic-Indic dataset for fine-tuning
+        dataset = load_dataset("ai4bharat/samanantar", "mr")
+
+        train_dataset = self.__flatten_dataset(dataset['train'], 'en', 'mr', 0.005)
+        validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'mr', )
+        test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'mr', )
+
+        self._train(train_dataset, validation_dataset, test_dataset, 'en', 'mr', 'eng_Latn mar_Deva')
+
+
+    def _train(self, train_dataset, validation_dataset, test_dataset, src_lang, trgt_lang, prefix):
         lora_config = LoraConfig(
             r=8,
             lora_alpha=32,
@@ -229,6 +218,9 @@ class IndicTransIndicIndicModel:
             outputs = self.tokenizer.batch_decode(outputs, skip_special_tokens=True, clean_up_tokenization_spaces=True)
 
         translations = self.ip.postprocess_batch(outputs, lang=tgt_lang)
+
+        if translations and len(translations) > 0:
+            translations = translations[0]
 
         return translations
 

@@ -13,13 +13,30 @@
         .text-input-wrapper .text-output-wrapper {
             font-size: 1.5rem;
         }
-        .translated-text {
+        .translated-text, .google-translated-text, .metric-text {
             padding: 10px;
             background-color: #cee3f8;
             border: 1px solid #4094d1;;
             border-radius: 5px;
-            }
+        }
+        .translated-text {
+            background-color: #cee3f8; /* light blue */
+        }
+        .google-translated-text {
+            background-color: #e8f5e9; /* light green */
+        }
+        .metric-text {
+            padding: 8px 12px;
+            margin: 6px 0;
+            background-color: #e8f5e9; /* soft green instead of gray */
+            border: 1px solid #4caf50;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2e7d32;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', path='js/script.js') }}" defer></script>
     <script src="{{ url_for('static', path='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', path='bootstrap/js/bootstrap.min.js') }}"></script>
@@ -49,23 +66,54 @@
               <option value="tamil">Tamil</option>
             </select>
         </div>
-        <div class="col"></div>
+        <div class="col">
+            <button class="translate-btn " onclick="translateText()">Translate</button>
+        </div>
     </div>
 
     <div class="row">
         <div class="col">
+            <label for="inputText">Input Text</label>
             <div class="text-input-wrapper">
                 <textarea id="inputText" rows="6" placeholder="Type your text here..."></textarea>
             </div>
         </div>
 
         <div class="col">
+            <label for="translatedText">Model Translation</label>
             <div class="text-output-wrapper">
-                <textarea id="translatedText" class="translated-text" rows="6" readonly></textarea>
+                <textarea name="translatedText" id="translatedText" class="translated-text" rows="6" readonly></textarea>
             </div>
         </div>
     </div>
-    <button class="translate-btn " onclick="translateText()">Translate</button>
+
+    <div class="row">
+        <div class="col-6">
+            <div class="col">
+                <label for="googleTranslatedText">Google Translation</label>
+                <div class="text-output-wrapper">
+                    <textarea name="googleTranslatedText" id="googleTranslatedText" class="google-translated-text" rows="6" readonly></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="col">
+                <label for="metricChart">Metrics Chart</label>
+                <div class="text-output-wrapper" style="height:245px;">
+                    <canvas name="metricChart" id="metricChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <label for="metric">Metrics</label>
+            <div class="text-output-wrapper">
+                <textarea name="metric" id="metric" class="metric-text" rows="5" readonly></textarea>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast Message -->
     <div id="messageToast" class="toast align-items-center text-white border-0 position-absolute bottom-0 end-0 mb-3" data-bs-autohide="true" role="alert" aria-live="assertive" aria-atomic="true">

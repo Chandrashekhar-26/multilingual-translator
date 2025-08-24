@@ -77,7 +77,17 @@ function translateText() {
             });
             showError(`Error translating .. ${errorMessage}`);
         } else {
-            document.getElementById('translatedText').value = data;
+            model_translation = data.model_translation
+            google_translation = data.google_translation
+            metrics = data.metrics
+            pretty_json_metric_text = JSON.stringify(metrics, null, 2)
+
+            document.getElementById('translatedText').value = model_translation;
+            document.getElementById('googleTranslatedText').value = google_translation;
+            document.getElementById('metric').value = pretty_json_metric_text;
+
+           // Draw metrics chart
+            drawChart(metrics)
         }
     }).catch(error => {
         showError('Error translating ..', error);
@@ -92,6 +102,40 @@ function hideLoadingSpinner() {
 
 function showLoadingSpinner() {
   document.getElementById("spinnerBackdrop").style.display = "flex";
+}
+
+function drawChart(metrics) {
+    const ctx = document.getElementById('metricChart');
+
+    // Clear previous chart if exists
+    if (window.metricChartInstance) {
+        window.metricChartInstance.destroy();
+    }
+
+    const labels = Object.keys(metrics);
+    const values = Object.values(metrics);
+
+    window.metricChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Metric Scores',
+                data: values,
+                backgroundColor: ['#42a5f5', '#66bb6a', '#ffa726', '#ab47bc'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1
+                }
+            }
+        }
+    });
 }
 
 //const textInputElement = document.getElementById('inputText');

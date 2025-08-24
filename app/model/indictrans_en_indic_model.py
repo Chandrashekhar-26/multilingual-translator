@@ -30,23 +30,9 @@ class IndicTransEnIndicModel:
             pass
 
         if self.model is None or self.tokenizer is None:
-            # # check gpu
-            # gpu_available = torch.cuda.is_available()
-            #
-            # # Load 4-bit quantized model
-            # bnb_config = BitsAndBytesConfig(
-            #     load_in_4bit=True,
-            #     bnb_4bit_compute_dtype=torch.float16,
-            #     bnb_4bit_use_double_quant=True,
-            #     bnb_4bit_quant_type="nf4"
-            # )
-            # Load model and tokenizer
             model_name = "ai4bharat/indictrans2-en-indic-dist-200M"
             print(f"Downloading model from Hugging Face: {model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-            # if gpu_available:
-            #     self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, quantization_config=bnb_config, trust_remote_code=True, torch_dtype="auto")
-            # else:
             self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, trust_remote_code=True, torch_dtype="auto")
 
         # Ensure tokenizer has pad_token
@@ -56,15 +42,6 @@ class IndicTransEnIndicModel:
         # Use GPU if available
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
-
-        # train on english-hindi dataset
-        dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
-        train_dataset = self.__flatten_dataset(dataset['train'],  'en', 'hi', 0.005)
-        validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'hi')
-        test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'hi')
-
-        # train
-        self.train(train_dataset, validation_dataset, test_dataset, 'en', 'hi', 'eng_Latn hin_Deva')
 
     def __flatten_dataset(self, dataset, src_lang: str, trgt_lang: str, frac=None):
         df = None
@@ -78,12 +55,22 @@ class IndicTransEnIndicModel:
 
             if 'translation' in df:
                 df = df['translation'].progress_apply(pd.Series)
-                # df[[src_lang, trgt_lang]] = df['translation'].progress_apply(pd.Series)
-                # df.drop(columns='translation', inplace=True)
 
         return df
 
-    def train(self, train_dataset, validation_dataset, test_dataset, src_lang, trgt_lang, prefix):
+    def train(self):
+        # train on english-hindi dataset
+        dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
+        train_dataset = self.__flatten_dataset(dataset['train'],  'en', 'hi', 0.005)
+        validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'hi')
+        test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'hi')
+
+        # train
+        self._train(train_dataset, validation_dataset, test_dataset, 'en', 'hi', 'eng_Latn hin_Deva')
+
+
+    def _train(self, train_dataset, validation_dataset, test_dataset, src_lang, trgt_lang, prefix):
+
         lora_config = LoraConfig(
             r=8,
             lora_alpha=32,
@@ -232,6 +219,9 @@ class IndicTransEnIndicModel:
 
         # Postprocess the translations, including entity replacement
         translations = self.ip.postprocess_batch(outputs, lang=tgt_lang)
+
+        if translations and len(translations) > 0:
+            translations = translations[0]
 
         return translations
 

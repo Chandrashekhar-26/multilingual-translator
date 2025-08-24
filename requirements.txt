@@ -13,6 +13,6 @@ sentencepiece
 torch
 indic-transliteration
 IndicTransToolkit
+googletrans==4.0.2
 datasets
-google-cloud-translate
 bitsandbytes

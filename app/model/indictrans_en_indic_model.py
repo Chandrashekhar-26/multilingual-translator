@@ -30,24 +30,24 @@ class IndicTransEnIndicModel:
             pass
 
         if self.model is None or self.tokenizer is None:
-            # check gpu
-            gpu_available = torch.cuda.is_available()
-
-            # Load 4-bit quantized model
-            bnb_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_compute_dtype=torch.float16,
-                bnb_4bit_use_double_quant=True,
-                bnb_4bit_quant_type="nf4"
-            )
+            # # check gpu
+            # gpu_available = torch.cuda.is_available()
+            #
+            # # Load 4-bit quantized model
+            # bnb_config = BitsAndBytesConfig(
+            #     load_in_4bit=True,
+            #     bnb_4bit_compute_dtype=torch.float16,
+            #     bnb_4bit_use_double_quant=True,
+            #     bnb_4bit_quant_type="nf4"
+            # )
             # Load model and tokenizer
             model_name = "ai4bharat/indictrans2-en-indic-dist-200M"
             print(f"Downloading model from Hugging Face: {model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-            if gpu_available:
-                self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, quantization_config=bnb_config, trust_remote_code=True, torch_dtype="auto")
-            else:
-                self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, trust_remote_code=True, torch_dtype="auto")
+            # if gpu_available:
+            #     self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, quantization_config=bnb_config, trust_remote_code=True, torch_dtype="auto")
+            # else:
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, trust_remote_code=True, torch_dtype="auto")
 
         # Ensure tokenizer has pad_token
         if self.tokenizer.pad_token is None:

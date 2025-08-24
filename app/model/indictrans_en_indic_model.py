@@ -30,6 +30,9 @@ class IndicTransEnIndicModel:
             pass
 
         if self.model is None or self.tokenizer is None:
+            # check gpu
+            gpu_available = torch.device(True if torch.cuda.is_available() else False)
+
             # Load 4-bit quantized model
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
@@ -41,7 +44,10 @@ class IndicTransEnIndicModel:
             model_name = "ai4bharat/indictrans2-en-indic-dist-200M"
             print(f"Downloading model from Hugging Face: {model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, quantization_config=bnb_config, trust_remote_code=True, torch_dtype="auto")
+            if gpu_available:
+                self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, quantization_config=bnb_config, trust_remote_code=True, torch_dtype="auto")
+            else:
+                self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, trust_remote_code=True, torch_dtype="auto")
 
         # Ensure tokenizer has pad_token
         if self.tokenizer.pad_token is None:
@@ -110,7 +116,7 @@ class IndicTransEnIndicModel:
         tokenized = dataset_prepped.map(lambda batch: DataProcessorService.tokenize_data(batch, self.tokenizer), batched=True)
 
         # Freeze Layers for training stability, Leverage Pretrained Knowledge, Prevent Overfitting and reduce Compute and Memory usage
-        self.freeze_layers(self.model)
+        # self.freeze_layers(self.model)
 
         # prepare training args
         training_args = TrainingArguments(
@@ -166,30 +172,30 @@ class IndicTransEnIndicModel:
 
         return metrics
 
-    def freeze_layers(self, model):
-        # Freeze all parameters first
-        for param in model.parameters():
-            param.requires_grad = False
-
-        # Unfreeze last 2 encoder layers
-        for layer in model.model.encoder.layers[-2:]:
-            for param in layer.parameters():
-                param.requires_grad = True
-
-        # Unfreeze last 2 decoder layers
-        for layer in model.model.decoder.layers[-2:]:
-            for param in layer.parameters():
-                param.requires_grad = True
-
-        # Unfreeze LM head
-        if hasattr(model, "lm_head"):
-            for param in model.lm_head.parameters():
-                param.requires_grad = True
-
-        # Optional: unfreeze embeddings if needed
-        if hasattr(model.model, "shared"):
-            for param in model.model.shared.parameters():
-                param.requires_grad = True
+    # def freeze_layers(self, model):
+    #     # Freeze all parameters first
+    #     for param in model.parameters():
+    #         param.requires_grad = False
+    #
+    #     # Unfreeze last 2 encoder layers
+    #     for layer in model.model.encoder.layers[-2:]:
+    #         for param in layer.parameters():
+    #             param.requires_grad = True
+    #
+    #     # Unfreeze last 2 decoder layers
+    #     for layer in model.model.decoder.layers[-2:]:
+    #         for param in layer.parameters():
+    #             param.requires_grad = True
+    #
+    #     # Unfreeze LM head
+    #     if hasattr(model.model, "lm_head"):
+    #         for param in model.model.lm_head.parameters():
+    #             param.requires_grad = True
+    #
+    #     # Optional: unfreeze embeddings if needed
+    #     if hasattr(model.model, "shared"):
+    #         for param in model.model.shared.parameters():
+    #             param.requires_grad = True
 
     def translate(self, input_text: str, src_lang: str, tgt_lang: str, max_length: int = 256) -> str:
         device = self.model.device

@@ -15,3 +15,4 @@ indic-transliteration
 IndicTransToolkit
 datasets
 google-cloud-translate
+bitsandbytes

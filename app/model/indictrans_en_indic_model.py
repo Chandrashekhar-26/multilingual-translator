@@ -149,28 +149,28 @@ class IndicTransEnIndicModel:
         return metrics
 
     def freeze_layers(self, model):
-        # Freeze all layers
+        # Freeze all parameters first
         for param in model.parameters():
             param.requires_grad = False
 
         # Unfreeze last 2 encoder layers
-        for layer in model.encoder.layers[-2:]:
+        for layer in model.model.encoder.layers[-2:]:
             for param in layer.parameters():
                 param.requires_grad = True
 
         # Unfreeze last 2 decoder layers
-        for layer in model.decoder.layers[-2:]:
+        for layer in model.model.decoder.layers[-2:]:
             for param in layer.parameters():
                 param.requires_grad = True
 
-        # Unfreeze the language modeling head
+        # Unfreeze LM head
         if hasattr(model, "lm_head"):
             for param in model.lm_head.parameters():
                 param.requires_grad = True
 
-        # Optional: unfreeze embeddings if you are training on new vocab
-        if hasattr(model, "shared"):
-            for param in model.shared.parameters():
+        # Optional: unfreeze embeddings if needed
+        if hasattr(model.model, "shared"):
+            for param in model.model.shared.parameters():
                 param.requires_grad = True
 
     def translate(self, input_text: str, src_lang: str, tgt_lang: str, max_length: int = 256) -> str:

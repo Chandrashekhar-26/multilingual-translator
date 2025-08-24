@@ -60,13 +60,13 @@ class IndicTransIndicIndicModel:
         self.model.to(device)
 
         # Load a suitable Indic-Indic dataset for fine-tuning
-        # dataset = load_dataset("ai4bharat/samanantar", "mr")
+        dataset = load_dataset("ai4bharat/samanantar", "mr")
 
-        # train_dataset = self.__flatten_dataset(dataset['train'], 'en', 'mr', 0.02)
-        # validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'mr', )
-        # test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'mr', )
+        train_dataset = self.__flatten_dataset(dataset['train'], 'en', 'mr', 0.005)
+        validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'mr', )
+        test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'mr', )
 
-        # self.train(train_dataset, validation_dataset, test_dataset, 'en', 'mr', 'eng_Latn mar_Deva')
+        self.train(train_dataset, validation_dataset, test_dataset, 'en', 'mr', 'eng_Latn mar_Deva')
 
     def __flatten_dataset(self, dataset, src_lang: str, trgt_lang: str, frac=None):
         df = None

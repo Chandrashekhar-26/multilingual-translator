@@ -58,13 +58,13 @@ class IndicTransIndicEnModel:
         self.model.to(device)
 
         # train on hindi-english dataset
-        # dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
-        # train_dataset = self.__flatten_dataset(dataset['train'],  'hi', 'en', 0.02)
-        # validation_dataset = self.__flatten_dataset(dataset['validation'], 'hi', 'en')
-        # test_dataset = self.__flatten_dataset(dataset['test'], 'hi', 'en')
+        dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
+        train_dataset = self.__flatten_dataset(dataset['train'],  'hi', 'en', 0.005)
+        validation_dataset = self.__flatten_dataset(dataset['validation'], 'hi', 'en')
+        test_dataset = self.__flatten_dataset(dataset['test'], 'hi', 'en')
 
         # train
-        # self.train(train_dataset, validation_dataset, test_dataset, 'hi', 'en', 'hin_Deva eng_Latn')
+        self.train(train_dataset, validation_dataset, test_dataset, 'hi', 'en', 'hin_Deva eng_Latn')
 
 
     def __flatten_dataset(self, dataset, src_lang: str, trgt_lang: str, frac=None):

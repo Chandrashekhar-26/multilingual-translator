@@ -57,9 +57,9 @@ class IndicTransEnIndicModel:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
 
-        # train on hindi-english dataset
+        # train on english-hindi dataset
         dataset = load_dataset("cfilt/iitb-english-hindi") # Load dataset
-        train_dataset = self.__flatten_dataset(dataset['train'],  'en', 'hi', 0.02)
+        train_dataset = self.__flatten_dataset(dataset['train'],  'en', 'hi', 0.005)
         validation_dataset = self.__flatten_dataset(dataset['validation'], 'en', 'hi')
         test_dataset = self.__flatten_dataset(dataset['test'], 'en', 'hi')
 

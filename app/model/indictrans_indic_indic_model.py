@@ -88,7 +88,7 @@ class IndicTransIndicIndicModel:
         tokenized = dataset_prepped.map(lambda batch: DataProcessorService.tokenize_data(batch, self.tokenizer), batched=True)
 
         # Freeze Layers for training stability, Leverage Pretrained Knowledge, Prevent Overfitting and reduce Compute and Memory usage
-        self.freeze_layers()
+        self.freeze_layers(self.model)
 
         training_args = TrainingArguments(
             output_dir=self.model_save_dir,
@@ -140,29 +140,30 @@ class IndicTransIndicIndicModel:
 
         return metrics
 
-    def freeze_layers(self):
+
+    def freeze_layers(self, model):
         # Freeze all layers
-        for param in self.model.parameters():
+        for param in model.parameters():
             param.requires_grad = False
 
         # Unfreeze last 2 encoder layers
-        for layer in self.model.model.encoder.layers[-2:]:
+        for layer in model.encoder.layers[-2:]:
             for param in layer.parameters():
                 param.requires_grad = True
 
         # Unfreeze last 2 decoder layers
-        for layer in self.model.model.decoder.layers[-2:]:
+        for layer in model.decoder.layers[-2:]:
             for param in layer.parameters():
                 param.requires_grad = True
 
         # Unfreeze the language modeling head
-        if hasattr(self.model, "lm_head"):
-            for param in self.model.lm_head.parameters():
+        if hasattr(model, "lm_head"):
+            for param in model.lm_head.parameters():
                 param.requires_grad = True
 
         # Optional: unfreeze embeddings if you are training on new vocab
-        if hasattr(self.model.model, "shared"):
-            for param in self.model.model.shared.parameters():
+        if hasattr(model, "shared"):
+            for param in model.shared.parameters():
                 param.requires_grad = True
 
 

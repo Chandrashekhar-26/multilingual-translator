@@ -38,4 +38,4 @@ def get_info():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host=Config.HOST, port=Config.PORT, reload=True)
+    uvicorn.run("main:app", host=Config.HOST, port=Config.PORT, reload=False)

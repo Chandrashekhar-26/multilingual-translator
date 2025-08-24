@@ -45,6 +45,8 @@ git clone https://github.com/Chandrashekhar-26/multilingual-translator.git
 ```bash
 cd multilingual-translator
 python -m venv venv
+source ./venv/bin/activate # ubuntu
+.\venv\Scripts\activate.bat # Windows
 pip install -r requirements.txt
 ```
 

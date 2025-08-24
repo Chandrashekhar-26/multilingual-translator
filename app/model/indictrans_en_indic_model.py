@@ -31,7 +31,7 @@ class IndicTransEnIndicModel:
 
         if self.model is None or self.tokenizer is None:
             # check gpu
-            gpu_available = torch.device(True if torch.cuda.is_available() else False)
+            gpu_available = torch.cuda.is_available()
 
             # Load 4-bit quantized model
             bnb_config = BitsAndBytesConfig(

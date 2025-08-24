@@ -5,6 +5,7 @@ pydantic
 pandas
 # scikit-learn
 transformers
+peft
 accelerate>=0.26.0
 nltk
 pyter3==0.3

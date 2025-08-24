@@ -1,5 +1,6 @@
 import pandas as pd
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, TrainingArguments, Trainer
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, TrainingArguments, Trainer, BitsAndBytesConfig
+from peft import LoraConfig, get_peft_model, TaskType
 import torch
 from app.data_processor import DataProcessorService, evaluator
 from datasets import load_dataset, DatasetDict
@@ -29,11 +30,18 @@ class IndicTransIndicEnModel:
             pass
 
         if self.model is None or self.tokenizer is None:
+            # Load 4-bit quantized model
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4"
+            )
             # Load model and tokenizer
             model_name = "ai4bharat/indictrans2-indic-en-dist-200M"
             print(f"Downloading model from Hugging Face: {model_name}")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, trust_remote_code=True, torch_dtype="auto")
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, quantization_config=bnb_config, trust_remote_code=True, torch_dtype="auto")
 
         # Ensure tokenizer has pad_token
         if self.tokenizer.pad_token is None:
@@ -72,7 +80,16 @@ class IndicTransIndicEnModel:
         return df
 
     def train(self, train_dataset, validation_dataset, test_dataset, src_lang, trgt_lang, prefix):
+        lora_config = LoraConfig(
+            r=8,
+            lora_alpha=32,
+            target_modules=["q_proj", "v_proj"],
+            lora_dropout=0.1,
+            bias="none",
+            task_type=TaskType.SEQ_2_SEQ_LM
+        )
 
+        self.model = get_peft_model(self.model, lora_config)
         # preprocess dataset
         p_train_dataset, p_validation_dataset, p_test_dataset = None,None, None
 
